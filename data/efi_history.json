@@ -1,0 +1,77 @@
+[
+  {
+    "timestamp": "2025-12-16T17:36:10.274252",
+    "efi_value": 2,
+    "signals": {
+      "S1": {
+        "value": 0,
+        "raw_value": -300.0,
+        "interpretation": "Neutral",
+        "details": {
+          "net_supply_daily_eth": -300,
+          "bullish_threshold": -1000,
+          "bearish_threshold": 1000,
+          "is_deflationary": true
+        }
+      },
+      "S2": {
+        "value": 1,
+        "raw_value": 10000.0,
+        "interpretation": "Bullish",
+        "details": {
+          "net_staking_flow_eth": 10000,
+          "deposits_7d_eth": 50000,
+          "withdrawals_7d_eth": 40000,
+          "bullish_threshold": 10000,
+          "bearish_threshold": -10000
+        }
+      },
+      "S3": {
+        "value": 0,
+        "raw_value": 48000000.0,
+        "interpretation": "Neutral",
+        "details": {
+          "weekly_flow_usd": 48000000,
+          "weekly_flow_usd_millions": 48.0,
+          "markets_open": true,
+          "bullish_threshold_millions": 50.0,
+          "bearish_threshold_millions": -50.0,
+          "is_estimated": true
+        }
+      },
+      "S4": {
+        "value": 0,
+        "raw_value": -30000.0,
+        "interpretation": "Neutral",
+        "details": {
+          "net_flow_7d_eth": -30000,
+          "inflows_7d_eth": 150000,
+          "outflows_7d_eth": 180000,
+          "bullish_threshold": -50000,
+          "bearish_threshold": 50000,
+          "is_accumulation": true,
+          "is_estimated": true
+        }
+      },
+      "S5": {
+        "value": 1,
+        "raw_value": 0.0,
+        "interpretation": "Healthy",
+        "details": {
+          "stress_score": 0.0,
+          "oi_change_7d_pct": 0,
+          "funding_rate": 0,
+          "liquidations_7d_usd": 0,
+          "stress_factors": [
+            "No significant stress factors"
+          ],
+          "is_estimated": false
+        }
+      }
+    },
+    "errors": [
+      "etherscan: could not convert string to float: 'You are using a deprecated V1 endpoint, switch to Etherscan API V2 using https://docs.etherscan.io/v2-migration'"
+    ],
+    "is_partial": true
+  }
+]
