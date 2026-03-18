@@ -1,1 +1,0 @@
-Quiero hacer un indice de liquidez de ethereum que mida los principales inflows y outflows que me permita entender si aumenta o disminuye la cantidad de ETH disponible en el mercado

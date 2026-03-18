@@ -1,3 +1,0 @@
-Quiero que hagas un backtest del valor del indice con respecto al precio de Ethereum. Determina en que niveles deberiamos aumentar una posición en Ethereum, mantener o vender.
-Grafica el indice indicando la señal que entrega (Comprar, Mantener, Vender) y el precio de Ethereum.
-Simula esto para el periodo 2020 - a la fecha y eocmienza en T0 con una inversión 100 para saber con cuanto terminaria en esta momento. Comparalo con un buy and hold desde el origen.
