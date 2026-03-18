@@ -8,7 +8,7 @@ import ConversionBadge from '../components/ui/ConversionBadge'
 import { formatAmount } from '../components/ui/AmountDisplay'
 
 function getLast12Months(): Array<{ year: number; month: number }> {
-  const result = []
+  const result: Array<{ year: number; month: number }> = []
   const now = new Date()
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
@@ -96,7 +96,7 @@ export default function Comparison() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {comparison.map(m => (
+                {comparison.map((m: import('../api/types').MonthComparison) => (
                   <tr key={`${m.year}-${m.month}`} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-700">
                       {MONTH_NAMES[m.month - 1]} {m.year}

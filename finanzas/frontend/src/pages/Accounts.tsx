@@ -206,7 +206,7 @@ export default function Accounts() {
         </div>
       ) : accounts.length > 0 ? (
         <div className="space-y-3">
-          {accounts.map((acc) => (
+          {accounts.map((acc: import('../api/types').Account) => (
             <div
               key={acc.id}
               className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4"

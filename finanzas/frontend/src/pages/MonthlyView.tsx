@@ -17,10 +17,10 @@ export default function MonthlyView() {
 
   const displayCurrency = summary?.display_currency ?? currency
 
-  const incomeCategories = summary?.by_category.filter(c =>
+  const incomeCategories = summary?.by_category.filter((c: { category_slug: string }) =>
     ['salary', 'transfer_in', 'other_income'].includes(c.category_slug)
   ) ?? []
-  const expenseCategories = summary?.by_category.filter(c =>
+  const expenseCategories = summary?.by_category.filter((c: { category_slug: string }) =>
     !['salary', 'transfer_in', 'other_income'].includes(c.category_slug)
   ) ?? []
 

@@ -22,7 +22,7 @@ export default function Upload() {
       return
     }
     setUploading(true)
-    const newResults = []
+    const newResults: Array<{ filename: string; result: UploadResponse | null; error: string | null }> = []
 
     for (const file of files) {
       const formData = new FormData()

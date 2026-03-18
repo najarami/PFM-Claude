@@ -38,7 +38,7 @@ export default function BudgetSettings() {
     },
   })
 
-  const budgetMap = Object.fromEntries(budgets.map(b => [b.category_slug, b.budget_amount]))
+  const budgetMap = Object.fromEntries(budgets.map((b: import('../api/types').BudgetStatus) => [b.category_slug, b.budget_amount]))
 
   const handleSave = (slug: string) => {
     const raw = editing[slug]
