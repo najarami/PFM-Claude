@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import accounts, budget, comparison, summary, transactions, upload  # noqa: E402
+from app.routers import accounts, budget, comparison, fx, summary, transactions, upload  # noqa: E402
 
 app.include_router(accounts.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
@@ -35,6 +35,7 @@ app.include_router(transactions.router, prefix="/api")
 app.include_router(summary.router, prefix="/api")
 app.include_router(comparison.router, prefix="/api")
 app.include_router(budget.router, prefix="/api")
+app.include_router(fx.router, prefix="/api")
 
 
 @app.get("/health")

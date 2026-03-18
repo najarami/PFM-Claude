@@ -12,10 +12,11 @@ router = APIRouter(tags=["summary"])
 async def monthly_summary(
     year: int,
     month: int,
-    currency: str = Query("CLP", description="Currency filter: CLP or USD"),
+    currency: str = Query("CLP", description="Target currency: CLP or USD"),
+    mode: str = Query("native", description="'native' filters by currency; 'converted' converts all transactions"),
     session: AsyncSession = Depends(get_session),
 ):
-    summary = await get_monthly_summary(year, month, session, currency=currency)
+    summary = await get_monthly_summary(year, month, session, currency=currency, mode=mode)
     return MonthlySummarySchema(
         year=summary.year,
         month=summary.month,
@@ -23,6 +24,7 @@ async def monthly_summary(
         total_expense=summary.total_expense,
         net=summary.net,
         transaction_count=summary.transaction_count,
+        display_currency=summary.display_currency,
         by_category=[
             CategoryBreakdownSchema(
                 category_id=b.category_id,

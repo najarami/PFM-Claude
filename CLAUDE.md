@@ -1,50 +1,60 @@
-# CLAUDE.md
+# CLAUDE.md — Personal Finance Manager (PFM)
 
-## Project: ETH Flow Index (EFI)
-
-Quantitative weekly index measuring ETH supply/demand balance via 5 signals (-1, 0, +1).
+## Stack
+- **Backend**: FastAPI + SQLAlchemy async + PostgreSQL + Alembic
+- **Frontend**: React 18 + TypeScript + TailwindCSS + Recharts + TanStack Query + Zustand
+- **FX API**: api.frankfurter.app (free, no key required)
 
 ## Quick Commands
 
 ```bash
-uv run pytest -v                          # Run tests
-uv run python -m source.main --calculate  # Calculate EFI
-uv run python -m source.main --history    # View history
-uv run python -m source.main --export json # Export data
+# Backend
+cd finanzas/backend
+uv run alembic upgrade head          # Run migrations
+uv run uvicorn app.main:app --reload # Start API (port 8000)
+
+# Frontend
+cd finanzas/frontend
+npm run dev                          # Start UI (port 5173)
+
+# Docker (PostgreSQL)
+cd finanzas
+docker-compose up db -d
 ```
 
 ## Architecture
 
 ```
-source/
-├── collectors/   # API data fetchers (CoinGecko, Etherscan, etc.)
-├── signals/      # S1-S5 calculators
-├── engine/       # EFI calculator + interpreter
-├── storage/      # JSON/CSV persistence
-└── outputs/      # CLI reporter + exporters
+finanzas/
+├── backend/app/
+│   ├── models/        # SQLAlchemy ORM (Account, Transaction, Category, Budget, FxRate, UploadLog)
+│   ├── routers/       # FastAPI endpoints (accounts, upload, transactions, summary, comparison, budget, fx)
+│   ├── services/      # Business logic (upload, dedup, category, summary, budget, fx)
+│   ├── parsers/       # Bank CSV/PDF parsers (6 Chilean + 6 US banks)
+│   └── schemas/       # Pydantic request/response models
+└── frontend/src/
+    ├── pages/         # Dashboard, Transactions, MonthlyView, Comparison, BudgetSettings, Upload, Accounts
+    ├── components/    # Charts, layout, UI (CurrencyToggle, ConversionBadge, BudgetGauge, etc.)
+    ├── api/           # API client (summary, budget, transactions, accounts)
+    └── store/         # Zustand (monthStore: year, month, currency, viewMode)
 ```
 
-## Signal Components
+## Multi-Currency
 
-| Signal | Metric | Bullish |
-|--------|--------|---------|
-| S1 | Net Supply | Deflationary |
-| S2 | Staking Flow | Net deposits |
-| S3 | ETF Demand | Inflows |
-| S4 | Exchange Flow | Net outflows |
-| S5 | Leverage | Low stress |
+Transactions store their native currency (CLP or USD).
+Two view modes controlled by `viewMode` in `monthStore`:
 
-## Regimes
+- **native**: filters transactions by selected currency (original behavior)
+- **converted**: fetches all transactions and converts each using the historical FX rate on the transaction date
 
-- **+4 to +5**: Explosive (strong bullish)
-- **+2 to +3**: Constructive (moderate bullish)
-- **-1 to +1**: Neutral
-- **-2 to -3**: Fragile (moderate bearish)
-- **-4 to -5**: Stress (strong bearish)
+FX rates are cached in the `fx_rates` table. Source: `api.frankfurter.app`.
+Endpoint: `GET /api/fx/rate?from=USD&to=CLP&rate_date=2024-03-15`
 
-## Key Files
+## Migrations
+- 0001: Initial schema + seed categories
+- 0002: Add currency to budgets
+- 0003: Add fx_rates table + fix dedup hash to include currency
 
-- `source/config.py` - Thresholds and API config
-- `source/engine/efi_calculator.py` - Main calculation logic
-- `source/engine/interpreter.py` - Regime classification
-- `specs/eth_flow_index.md` - Full specification
+## Supported Banks
+**Chilean**: Banco de Chile, BCI, Santander, MACH, Tenpo, Mercado Pago
+**US**: Bank of America, Chase, Wells Fargo, Schwab, Amex, Citi

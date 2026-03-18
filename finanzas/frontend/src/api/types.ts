@@ -68,6 +68,7 @@ export interface MonthlySummary {
   net: number
   by_category: CategoryBreakdown[]
   transaction_count: number
+  display_currency: string
 }
 
 export interface MonthComparison {
@@ -77,6 +78,7 @@ export interface MonthComparison {
   total_expense: number
   net: number
   by_category: Record<string, number>
+  display_currency: string
 }
 
 export interface BudgetStatus {

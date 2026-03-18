@@ -62,7 +62,7 @@ async def process_upload(
     result.total_parsed = len(raw_txs)
 
     for raw in raw_txs:
-        dedup_hash = compute_dedup_hash(account_id, raw.date, raw.amount, raw.description)
+        dedup_hash = compute_dedup_hash(account_id, raw.date, raw.amount, raw.description, raw.currency)
 
         # Phase 1: exact duplicate check
         existing = await find_exact_duplicate(session, dedup_hash)
@@ -101,7 +101,7 @@ async def process_upload(
 
         # Phase 2: cross-account duplicate check (credit card payments)
         cross = await find_cross_account_duplicate(
-            session, raw.amount, raw.date, account_id, raw.description
+            session, raw.amount, raw.date, account_id, raw.description, raw.currency
         )
         if cross:
             tx.is_duplicate = True

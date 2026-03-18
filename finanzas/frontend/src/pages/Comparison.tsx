@@ -4,7 +4,8 @@ import { useMonthStore } from '../store/monthStore'
 import { summaryApi } from '../api/summary'
 import IncomeExpenseBar from '../components/charts/IncomeExpenseBar'
 import CurrencyToggle from '../components/ui/CurrencyToggle'
-import { formatCLP } from '../components/ui/AmountDisplay'
+import ConversionBadge from '../components/ui/ConversionBadge'
+import { formatAmount } from '../components/ui/AmountDisplay'
 
 function getLast12Months(): Array<{ year: number; month: number }> {
   const result = []
@@ -21,13 +22,15 @@ const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Se
 export default function Comparison() {
   const last12 = getLast12Months()
   const [selected, setSelected] = useState(last12.slice(-6))
-  const { currency } = useMonthStore()
+  const { currency, viewMode } = useMonthStore()
 
   const { data: comparison = [], isLoading } = useQuery({
-    queryKey: ['comparison', selected, currency],
-    queryFn: () => summaryApi.comparison(selected, currency),
+    queryKey: ['comparison', selected, currency, viewMode],
+    queryFn: () => summaryApi.comparison(selected, currency, viewMode),
     enabled: selected.length > 0,
   })
+
+  const displayCurrency = comparison[0]?.display_currency ?? currency
 
   const toggleMonth = (m: { year: number; month: number }) => {
     const exists = selected.some(s => s.year === m.year && s.month === m.month)
@@ -41,7 +44,10 @@ export default function Comparison() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Comparativo Mensual</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900">Comparativo Mensual</h1>
+          <ConversionBadge mode={viewMode} currency={displayCurrency} />
+        </div>
         <CurrencyToggle />
       </div>
 
@@ -96,13 +102,13 @@ export default function Comparison() {
                       {MONTH_NAMES[m.month - 1]} {m.year}
                     </td>
                     <td className="px-4 py-3 text-right text-green-600 font-mono">
-                      {formatCLP(m.total_income)}
+                      {formatAmount(m.total_income, displayCurrency)}
                     </td>
                     <td className="px-4 py-3 text-right text-red-600 font-mono">
-                      {formatCLP(m.total_expense)}
+                      {formatAmount(m.total_expense, displayCurrency)}
                     </td>
                     <td className={`px-4 py-3 text-right font-mono font-semibold ${m.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {m.net >= 0 ? '+' : ''}{formatCLP(m.net)}
+                      {m.net >= 0 ? '+' : ''}{formatAmount(m.net, displayCurrency)}
                     </td>
                   </tr>
                 ))}

@@ -2,17 +2,20 @@ import { useQuery } from '@tanstack/react-query'
 import { useMonthStore } from '../store/monthStore'
 import MonthPicker from '../components/ui/MonthPicker'
 import CurrencyToggle from '../components/ui/CurrencyToggle'
+import ConversionBadge from '../components/ui/ConversionBadge'
 import ExpensePieChart from '../components/charts/ExpensePieChart'
-import AmountDisplay, { formatCLP } from '../components/ui/AmountDisplay'
+import AmountDisplay, { formatAmount } from '../components/ui/AmountDisplay'
 import { summaryApi } from '../api/summary'
 
 export default function MonthlyView() {
-  const { year, month, currency } = useMonthStore()
+  const { year, month, currency, viewMode } = useMonthStore()
 
   const { data: summary, isLoading } = useQuery({
-    queryKey: ['summary', year, month, currency],
-    queryFn: () => summaryApi.monthly(year, month, currency),
+    queryKey: ['summary', year, month, currency, viewMode],
+    queryFn: () => summaryApi.monthly(year, month, currency, viewMode),
   })
+
+  const displayCurrency = summary?.display_currency ?? currency
 
   const incomeCategories = summary?.by_category.filter(c =>
     ['salary', 'transfer_in', 'other_income'].includes(c.category_slug)
@@ -24,7 +27,10 @@ export default function MonthlyView() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Vista Mensual</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900">Vista Mensual</h1>
+          <ConversionBadge mode={viewMode} currency={displayCurrency} />
+        </div>
         <div className="flex items-center gap-3">
           <CurrencyToggle />
           <MonthPicker />
@@ -39,16 +45,16 @@ export default function MonthlyView() {
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
               <div className="text-xs text-green-600 font-semibold mb-1">INGRESOS</div>
-              <div className="text-xl font-bold text-green-700">{formatCLP(summary.total_income)}</div>
+              <div className="text-xl font-bold text-green-700">{formatAmount(summary.total_income, displayCurrency)}</div>
             </div>
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <div className="text-xs text-red-600 font-semibold mb-1">GASTOS</div>
-              <div className="text-xl font-bold text-red-700">{formatCLP(summary.total_expense)}</div>
+              <div className="text-xl font-bold text-red-700">{formatAmount(summary.total_expense, displayCurrency)}</div>
             </div>
             <div className={`border rounded-xl p-4 ${summary.net >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
               <div className="text-xs font-semibold mb-1">BALANCE</div>
               <div className="text-xl font-bold">
-                <AmountDisplay amount={summary.net} showSign />
+                <AmountDisplay amount={summary.net} currency={displayCurrency} showSign />
               </div>
             </div>
           </div>
@@ -67,7 +73,7 @@ export default function MonthlyView() {
                     </div>
                     <div className="flex gap-3 text-xs">
                       <span className="text-gray-400">{cat.pct_of_total}%</span>
-                      <span className="font-medium text-red-600">{formatCLP(cat.amount)}</span>
+                      <span className="font-medium text-red-600">{formatAmount(cat.amount, displayCurrency)}</span>
                     </div>
                   </div>
                 ))}
@@ -85,7 +91,7 @@ export default function MonthlyView() {
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
                       <span>{cat.icon} {cat.category_name}</span>
                     </div>
-                    <span className="text-xs font-medium text-green-600">{formatCLP(cat.amount)}</span>
+                    <span className="text-xs font-medium text-green-600">{formatAmount(cat.amount, displayCurrency)}</span>
                   </div>
                 ))}
               </div>

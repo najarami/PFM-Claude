@@ -15,9 +15,9 @@ CREDIT_CARD_PAYMENT_KEYWORDS = [
 ]
 
 
-def compute_dedup_hash(account_id: str, date, amount: Decimal, description: str) -> str:
-    """SHA-256 of account+date+amount+normalized description for exact-match dedup."""
-    payload = f"{account_id}|{date.isoformat()}|{amount}|{description.upper().strip()}"
+def compute_dedup_hash(account_id: str, date, amount: Decimal, description: str, currency: str = "CLP") -> str:
+    """SHA-256 of account+date+amount+normalized description+currency for exact-match dedup."""
+    payload = f"{account_id}|{date.isoformat()}|{amount}|{description.upper().strip()}|{currency}"
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
@@ -37,13 +37,15 @@ async def find_cross_account_duplicate(
     date,
     account_id: str,
     description: str,
+    currency: str = "CLP",
 ) -> Transaction | None:
     """
     Detect credit card payment duplicated across checking + credit card accounts.
 
     Conditions:
     - Different account
-    - Absolute amount matches within 1 CLP
+    - Same currency (avoids false matches between CLP and USD amounts)
+    - Absolute amount matches within 1 unit
     - Date within ±3 days
     - Either this or the other transaction has a payment keyword in description
     """
@@ -60,6 +62,7 @@ async def find_cross_account_duplicate(
         .where(
             and_(
                 Transaction.account_id != account_id,
+                Transaction.currency == currency,
                 Transaction.date >= date_min,
                 Transaction.date <= date_max,
                 func.abs(Transaction.amount) >= abs_amount - 1,

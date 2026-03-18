@@ -1,5 +1,6 @@
 """Budget management: actual vs budget comparison."""
 from dataclasses import dataclass
+from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.budget import Budget
 from app.models.category import Category
 from app.models.transaction import Transaction
+from app.services.fx_service import convert_amount, get_rates_bulk
 
 
 @dataclass
@@ -22,7 +24,7 @@ class BudgetStatus:
     pct_used: float
 
 
-async def get_budget_status(year: int, month: int, session: AsyncSession, currency: str = "CLP") -> list[BudgetStatus]:
+async def get_budget_status(year: int, month: int, session: AsyncSession, currency: str = "CLP", mode: str = "native") -> list[BudgetStatus]:
     """
     Returns budget vs actual for all expense categories that have a budget set.
     Budget resolution: (category, month, year, currency) > (category, month=0, year, currency) > (category, 0, 0, currency)
@@ -41,18 +43,21 @@ async def get_budget_status(year: int, month: int, session: AsyncSession, curren
         if budget_amount is None:
             continue  # no budget set for this category + currency
 
-        # Actual spending this month filtered by currency
-        actual_q = await session.execute(
-            select(func.sum(func.abs(Transaction.amount))).where(
-                Transaction.category_id == cat.id,
-                Transaction.year == year,
-                Transaction.month == month,
-                Transaction.is_duplicate.is_(False),
-                Transaction.transaction_type.in_(["expense", "transfer"]),
-                Transaction.currency == currency,
+        # Actual spending this month
+        if mode == "converted":
+            actual = await _get_actual_converted(cat.id, year, month, currency, session)
+        else:
+            actual_q = await session.execute(
+                select(func.sum(func.abs(Transaction.amount))).where(
+                    Transaction.category_id == cat.id,
+                    Transaction.year == year,
+                    Transaction.month == month,
+                    Transaction.is_duplicate.is_(False),
+                    Transaction.transaction_type.in_(["expense", "transfer"]),
+                    Transaction.currency == currency,
+                )
             )
-        )
-        actual = float(actual_q.scalar() or 0)
+            actual = float(actual_q.scalar() or 0)
         remaining = budget_amount - actual
         pct_used = round(actual / budget_amount * 100, 1) if budget_amount > 0 else 0.0
 
@@ -88,6 +93,35 @@ async def _resolve_budget(
         if val is not None:
             return float(val)
     return None
+
+
+async def _get_actual_converted(
+    category_id, year: int, month: int, target_currency: str, session: AsyncSession
+) -> float:
+    """Sum actual spending for a category converting all currencies to target_currency."""
+    txs_q = await session.execute(
+        select(Transaction.amount, Transaction.currency, Transaction.date).where(
+            Transaction.category_id == category_id,
+            Transaction.year == year,
+            Transaction.month == month,
+            Transaction.is_duplicate.is_(False),
+            Transaction.transaction_type.in_(["expense", "transfer"]),
+        )
+    )
+    rows = txs_q.all()
+    if not rows:
+        return 0.0
+
+    pairs = list({(row.currency, target_currency, row.date) for row in rows if row.currency != target_currency})
+    rates = await get_rates_bulk(pairs, session)
+
+    total = Decimal("0")
+    for row in rows:
+        rate = Decimal("1") if row.currency == target_currency else rates.get((row.currency, target_currency, row.date))
+        if rate is None:
+            continue
+        total += convert_amount(abs(Decimal(str(row.amount))), row.currency, target_currency, rate)
+    return float(total)
 
 
 async def upsert_budget(

@@ -21,6 +21,7 @@ class MonthlySummarySchema(BaseModel):
     net: float
     by_category: list[CategoryBreakdownSchema]
     transaction_count: int
+    display_currency: str = "CLP"
 
 
 class MonthComparisonSchema(BaseModel):
@@ -30,3 +31,4 @@ class MonthComparisonSchema(BaseModel):
     total_expense: float
     net: float
     by_category: dict[str, float]
+    display_currency: str = "CLP"

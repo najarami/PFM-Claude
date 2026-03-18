@@ -12,10 +12,11 @@ router = APIRouter(tags=["budget"])
 async def get_budgets(
     year: int = Query(...),
     month: int = Query(...),
-    currency: str = Query("CLP", description="Currency: CLP or USD"),
+    currency: str = Query("CLP", description="Target currency: CLP or USD"),
+    mode: str = Query("native", description="'native' filters by currency; 'converted' converts all transactions"),
     session: AsyncSession = Depends(get_session),
 ):
-    statuses = await get_budget_status(year, month, session, currency=currency)
+    statuses = await get_budget_status(year, month, session, currency=currency, mode=mode)
     return [
         BudgetStatusSchema(
             category_id=s.category_id,

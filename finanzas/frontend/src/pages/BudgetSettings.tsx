@@ -4,7 +4,7 @@ import { budgetApi } from '../api/budget'
 import { useMonthStore } from '../store/monthStore'
 import MonthPicker from '../components/ui/MonthPicker'
 import CurrencyToggle from '../components/ui/CurrencyToggle'
-import { formatCLP } from '../components/ui/AmountDisplay'
+import { formatAmount } from '../components/ui/AmountDisplay'
 
 const CATEGORIES = [
   { slug: 'food_dining', name: 'Alimentación', icon: '🍽️' },
@@ -20,14 +20,14 @@ const CATEGORIES = [
 ]
 
 export default function BudgetSettings() {
-  const { year, month, currency } = useMonthStore()
+  const { year, month, currency, viewMode } = useMonthStore()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<Record<string, string>>({})
   const [useMonthSpecific, setUseMonthSpecific] = useState(false)
 
   const { data: budgets = [] } = useQuery({
-    queryKey: ['budget', year, month, currency],
-    queryFn: () => budgetApi.list(year, month, currency),
+    queryKey: ['budget', year, month, currency, viewMode],
+    queryFn: () => budgetApi.list(year, month, currency, viewMode),
   })
 
   const saveMutation = useMutation({
@@ -120,7 +120,7 @@ export default function BudgetSettings() {
                 ) : (
                   <>
                     <span className="text-sm font-mono text-gray-600">
-                      {current ? formatCLP(current) : <span className="text-gray-300">Sin presupuesto</span>}
+                      {current ? formatAmount(current, currency) : <span className="text-gray-300">Sin presupuesto</span>}
                     </span>
                     <button
                       onClick={() => setEditing(e => ({ ...e, [cat.slug]: current ? String(Math.round(current)) : '' }))}
