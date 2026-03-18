@@ -11,5 +11,15 @@ class Settings(BaseSettings):
     fx_api_timeout_seconds: int = 10
     base_currency: str = "CLP"
 
+    @property
+    def async_database_url(self) -> str:
+        """Ensure URL uses asyncpg driver (Railway injects plain postgresql://)."""
+        url = self.database_url
+        if url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        return url
+
 
 settings = Settings()
